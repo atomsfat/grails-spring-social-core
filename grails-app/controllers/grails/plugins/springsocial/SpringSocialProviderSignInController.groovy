@@ -49,8 +49,9 @@ class SpringSocialProviderSignInController {
   }
 
   def oauthCallback() {
-    String providerId = params.providerId
 
+    String providerId = params.providerId
+    log.debug "oauthCallback providerId: $providerId"
     Assert.hasText(providerId, 'The providerId is required')
 
     NativeWebRequest nativeWebRequest = new GrailsWebRequest(request, response, servletContext)
