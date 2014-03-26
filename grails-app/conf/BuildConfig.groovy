@@ -23,6 +23,9 @@ grails.project.source.level = 1.6
 //grails.project.war.file = "target/${appName}.war"
 grails.project.war.file = "target/ROOT.war"
 
+grails.project.repos.sindicato.url = "http://repo.sindica.to/nexus/content/repositories/snapshots/"
+grails.project.repos.default = "sindicato"
+
 grails.project.fork = [
   // configure settings for compilation JVM, note that if you alter the Groovy version forked compilation is required
   //  compile: [maxMemory: 256, minMemory: 64, debug: false, maxPerm: 256, daemon:true],
@@ -66,7 +69,7 @@ grails.project.dependency.resolution = {
   def gebVersion = "0.9.3-SNAPSHOT"
 
   dependencies {
-    def springSocialVersion = "1.1.0.BUILD-SNAPSHOT"
+    def springSocialVersion = "1.1.0.RC1"
 
     compile("org.springframework.social:spring-social-core:${springSocialVersion}") { transitive = false }
     compile("org.springframework.social:spring-social-web:${springSocialVersion}") { transitive = false }
@@ -84,7 +87,7 @@ grails.project.dependency.resolution = {
       export = false
     }
     compile(":spring-security-core:2.0-RC2")
-
+    compile ":platform-core:1.0.RC6"
     compile(":hibernate:3.6.10.6") {
       export = false
     }
