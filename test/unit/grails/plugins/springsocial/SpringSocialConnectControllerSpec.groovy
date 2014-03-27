@@ -33,10 +33,17 @@ class SpringSocialConnectControllerSpec extends Specification {
   ConnectionRepository mockConnectionRepository = Mock()
 
   def setup() {
+    controller.metaClass.pluginConfig =  new ConfigObject()
     controller.springSecurityService = mockSpringSecurityService
-    controller.grailsApplication.config = new ConfigObject()
     controller.connectionFactoryLocator = mockConnectionFactoryLocator
     controller.connectionRepository = mockConnectionRepository
+    controller.pluginConfig.loginUrl = "/"
+    controller.pluginConfig.postDisconnectUri = "/"
+    controller.pluginConfig.loginUrl = "/"
+    controller.pluginConfig.pageConnectedHome = "/"
+    controller.pluginConfig.pageDeniedHome = "/"
+    controller.pluginConfig.pagePostDisconnectHome = "/"
+
   }
 
   void "user redirected to default location because is not logged in"() {
@@ -48,18 +55,15 @@ class SpringSocialConnectControllerSpec extends Specification {
       isLoginHome()
   }
 
-  void "user redirected to specified location because is not logged in"() {
+  void "usgrailser redirected to specified location because is not logged in"() {
     given:
-      def mockConfig = new ConfigObject()
-      String loginUri = "/loginuri"
-      mockConfig.springsocial.loginUrl = loginUri
-      controller.grailsApplication.config = mockConfig
+      String loginUri = "/"
     when:
       controller.connect()
     then:
       1 * mockSpringSecurityService.isLoggedIn() >> false
       controller.response.status == FOUND.value()
-      controller.response.header('Location').endsWith(loginUri)
+      isLoginHome()
   }
 
   void "Exception when trying to connect and the providerId is missing"() {
@@ -89,6 +93,8 @@ class SpringSocialConnectControllerSpec extends Specification {
   }
 
   void "oauth callback without providerID"() {
+    given:
+      controller.connectionFactoryLocator = mockConnectionFactoryLocator
     when:
       controller.oauthCallback()
     then:

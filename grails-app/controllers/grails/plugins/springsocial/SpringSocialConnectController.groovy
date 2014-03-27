@@ -15,7 +15,6 @@
 package grails.plugins.springsocial
 
 import grails.plugin.springsecurity.SpringSecurityService
-import grails.plugins.springsocial.config.DefaultConfig
 import grails.plugins.springsocial.connect.web.GrailsConnectSupport
 import org.codehaus.groovy.grails.web.servlet.mvc.GrailsWebRequest
 import org.springframework.core.GenericTypeResolver
@@ -106,6 +105,7 @@ class SpringSocialConnectController {
   }
 
   def connect() {
+    log.debug "connect"
     String result
     if (springSecurityService.isLoggedIn()) {
       String providerId = params.providerId
@@ -123,14 +123,16 @@ class SpringSocialConnectController {
       try {
         result = webSupport.buildOAuthUrl(connectionFactory, nativeWebRequest, parameters)
       } catch (e) {
+        log.warn("trouble", e)
         request.setAttribute(PROVIDER_ERROR_ATTRIBUTE, e, RequestAttributes.SCOPE_SESSION)
         result = connectionStatusRedirect(providerId, request)
       }
+      log.debug "result $result redirecting"
       redirect url: result
     } else {
       log.warn('The connect feature only is available for Signed Users. New users perhaps can use SignIn feature.')
 
-      result = getUrlLogin()
+      result = pluginConfig.loginUrl
       log.info("Redirecting to $result")
       redirect uri: result
     }
@@ -154,23 +156,15 @@ class SpringSocialConnectController {
   }
 
   def oauthCallback() {
+    log.debug "oauthCallback"
     String providerId = params.providerId
 
     Assert.hasText(providerId, 'The providerId is required')
 
-    ConfigObject config = getConfigByProviderId(providerId)
-
-    if (!config) {
-      //TODO: Maybe send a http status 50x
-      String result = getUrlLogin()
-      redirect uri: result
-      return
-    }
     String denied = params.denied
-
     if (denied) {
       //TODO: Document this parameters
-      String uriRedirectOnDenied = getPageDeniedHome(config)
+      String uriRedirectOnDenied = pluginConfig.pageDeniedHome
 
       log.info("The user has denied accesss to ${providerId} profile. Redirecting to uri: ${uriRedirectOnDenied}")
 
@@ -178,14 +172,20 @@ class SpringSocialConnectController {
       return
     }
 
-    String uri = getPageConnectedHome(config)
+    String uri = pluginConfig.pageConnectedHome
 
     ConnectionFactory connectionFactory = connectionFactoryLocator.getConnectionFactory(providerId)
+    if(!connectionFactory) {
+      log.warn("unable to create ConnectionFactory provider not supported")
+      redirect uri: pluginConfig.loginUrl
+      return
+    }
     NativeWebRequest nativeWebRequest = new GrailsWebRequest(request, response, servletContext)
     Connection connection = webSupport.completeConnection(connectionFactory, nativeWebRequest)
-
+    log.debug "connection $connection "
     //addConnection(connection, connectionFactory, nativeWebRequest)
     addConnection(connection, nativeWebRequest)
+    log.info("Redirecting to pageConnectedHome: $uri")
     redirect(uri: uri)
   }
 
@@ -209,10 +209,9 @@ class SpringSocialConnectController {
     //TODO: implement this
     //postDisconnect(connectionFactory, request)
 
-    ConfigObject config = getConfigByProviderId(providerId)
     //TODO: Document this parameter
-    String postDisconnectUri = getPagePostDisconnectHome(config)
-    log.info("redirecting to ${postDisconnectUri}")
+    String postDisconnectUri = pluginConfig.postDisconnectUri
+    log.info("redirecting to postDisconnectUri: ${postDisconnectUri}")
     redirect(uri: postDisconnectUri)
   }
 
@@ -225,30 +224,6 @@ class SpringSocialConnectController {
     } catch (DuplicateConnectionException e) {
       request.setAttribute(DUPLICATE_CONNECTION_ATTRIBUTE, e, RequestAttributes.SCOPE_SESSION)
     }
-  }
-
-  private String getUrlLogin() {
-    //TODO: Document this parameter
-    grailsApplication.config.springsocial?.loginUrl ?: DefaultConfig.loginUrl
-  }
-
-  private String getPageConnectedHome(ConfigObject config) {
-    //TODO: Document this parameter
-    config.page?.connectedHome ?: DefaultConfig.pageConnectedHome
-  }
-
-  private String getPageDeniedHome(ConfigObject config) {
-    //TODO: Document this parameter
-    config.page?.deniedHome ?: DefaultConfig.pageDeniedHome
-  }
-
-  private String getPagePostDisconnectHome(ConfigObject config) {
-    //TODO: Document this parameter
-    config?.page?.postDisconnectHome ?: DefaultConfig.pagePostDisconnectHome
-  }
-
-  private ConfigObject getConfigByProviderId(String providerId) {
-    grailsApplication.config.springsocial?.get(providerId)
   }
 
   @SuppressWarnings(["rawtypes", "unchecked"])
