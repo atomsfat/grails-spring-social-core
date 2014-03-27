@@ -42,7 +42,8 @@ class SpringSocialCoreGrailsPlugin {
 
   def license = "APACHE"
   def organization = [name: "Grails Spring Social", url: "http://github.com/Grails-Spring-Social"]
-  def developers = []
+  def developers = [[name: "Domingo Suarez Torres", email: "domingo.suarez@gmail.com"],
+                    [name: "Tomas Salazar", email: "atomsmail@gmail.com"]]
   def scm = [url: "https://github.com/Grails-Spring-Social/grails-spring-social-core"]
   def issueManagement = [system: "GITHUB", url: "https://github.com/Grails-Spring-Social/grails-spring-social-core/issues"]
 
@@ -51,6 +52,21 @@ class SpringSocialCoreGrailsPlugin {
     context.'component-scan'('base-package': "grails.plugins.springsocial.config.core")
 
     signInService(SpringSecuritySigninService)
+  }
+
+  def doWithConfig = { config ->
+    springSocialCore {
+
+    }
+
+    def doWithConfigOptions = {
+      postDisconnectUri(type: String)
+      loginUrl(type: String)
+      pageConnectedHome(type: String)
+      pageDeniedHome(type: String)
+      pagePostDisconnectHome(type: String)
+    }
+
   }
 
 }
