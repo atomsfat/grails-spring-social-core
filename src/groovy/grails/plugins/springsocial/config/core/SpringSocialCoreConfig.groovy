@@ -27,13 +27,48 @@ import org.springframework.social.connect.UsersConnectionRepository
 import org.springframework.social.connect.jdbc.JdbcUsersConnectionRepository
 import org.springframework.social.connect.support.ConnectionFactoryRegistry
 
+import org.springframework.social.config.annotation.EnableSocial;
+import org.springframework.social.config.annotation.SocialConfigurer;
+
+import org.springframework.core.env.Environment;
+import org.springframework.social.UserIdSource;
+import org.springframework.security.core.Authentication;
+import org.springframework.social.config.annotation.ConnectionFactoryConfigurer;
+
 import javax.inject.Inject
 import javax.sql.DataSource
 
 @Configuration
-class SpringSocialCoreConfig {
+@EnableSocial
+class SpringSocialCoreConfig implements SocialConfigurer {
   @Inject
   DataSource dataSource
+
+  @Override
+  public void addConnectionFactories(ConnectionFactoryConfigurer cfConfig, Environment env) {
+    //cfConfig.addConnectionFactory(new TwitterConnectionFactory(env.getProperty("twitter.appKey"), env.getProperty("twitter.appSecret")));
+    //cfConfig.addConnectionFactory(new FacebookConnectionFactory(env.getProperty("facebook.appKey"), env.getProperty("facebook.appSecret")));
+    //cfConfig.addConnectionFactory(new LinkedInConnectionFactory(env.getProperty("linkedin.appKey"), env.getProperty("linkedin.appSecret")));
+  }
+  
+  @Override
+  public UserIdSource getUserIdSource() {
+    return new UserIdSource() {     
+      @Override
+      public String getUserId() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null) {
+          throw new IllegalStateException("Unable to get a ConnectionRepository: no user signed in");
+        }
+        return authentication.getName();
+      }
+    };
+  }
+  
+  @Override
+  public UsersConnectionRepository getUsersConnectionRepository(ConnectionFactoryLocator connectionFactoryLocator) {
+    return new JdbcUsersConnectionRepository(dataSource, connectionFactoryLocator, Encryptors.noOpText());
+  }
 
   @Bean
   TextEncryptor textEncryptor() {

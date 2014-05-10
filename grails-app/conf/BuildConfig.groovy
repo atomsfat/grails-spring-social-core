@@ -69,7 +69,7 @@ grails.project.dependency.resolution = {
   def gebVersion = "0.9.3-SNAPSHOT"
 
   dependencies {
-    def springSocialVersion = "1.1.0.RC1"
+    def springSocialVersion = "1.1.0.RELEASE"
 
     compile("org.springframework.social:spring-social-core:${springSocialVersion}") { transitive = false }
     compile("org.springframework.social:spring-social-web:${springSocialVersion}") { transitive = false }
