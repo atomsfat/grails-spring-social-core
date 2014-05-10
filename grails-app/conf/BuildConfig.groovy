@@ -82,17 +82,17 @@ grails.project.dependency.resolution = {
   }
   plugins {
     // plugins for the build system only
-    build ":tomcat:7.0.47"
+    build ":tomcat:7.0.52.1"
     build (':release:3.0.1') {
       export = false
     }
     compile(":spring-security-core:2.0-RC2")
     compile ":platform-core:1.0.RC6"
-    compile(":hibernate:3.6.10.6") {
+    compile(":hibernate:3.6.10.11") {
       export = false
     }
 
-    test(":geb:${gebVersion}", ":functional-test-development:0.9.4", ":fixtures:1.3-SNAPSHOT", ":codenarc:0.20", ":code-coverage:1.2.7", ":guard:1.0.7") {
+    test(":geb:${gebVersion}", ":codenarc:0.20", ":code-coverage:1.2.7") {
       export = false
     }
     test(":spock:0.7") {
